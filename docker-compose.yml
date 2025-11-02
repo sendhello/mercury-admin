@@ -1,0 +1,79 @@
+version: '3.8'
+
+services:
+
+  order-service:
+    container_name: order-service
+    hostname: order-service
+    build: .
+    environment:
+      DEBUG: ${DEBUG}
+      PROJECT_NAME: ${PROJECT_NAME}
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      POSTGRES_DB: ${ORDER_POSTGRES_DB}
+      POSTGRES_APP_USER: ${POSTGRES_APP_USER}
+      POSTGRES_APP_PASSWORD: ${POSTGRES_APP_PASSWORD}
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+      AUTHJWT_SECRET_KEY: ${AUTHJWT_SECRET_KEY}
+      JAEGER_TRACE: ${JAEGER_TRACE}
+      JAEGER_AGENT_HOST: ${JAEGER_AGENT_HOST}
+      JAEGER_AGENT_PORT: ${JAEGER_AGENT_PORT}
+    networks:
+      - network
+    expose:
+      - "8000"
+    depends_on:
+      - redis
+      - order-postgres
+
+  order-postgres:
+    container_name: order-postgres
+    hostname: order-postgres
+    image: postgres:15.2
+    networks:
+      - network
+    expose:
+      - "5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${ORDER_POSTGRES_DB}
+    volumes:
+      - order_pgdata:/var/lib/postgresql/data/
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    container_name: redis
+    hostname: redis
+    image: redis:7.2-rc1
+    environment:
+      ALLOW_EMPTY_PASSWORD: ${ALLOW_EMPTY_PASSWORD}
+    volumes:
+      - redis_data:/data
+    expose:
+      - "6379"
+    networks:
+      - network
+
+  jaeger:
+    container_name: jaeger
+    hostname: jaeger
+    image: jaegertracing/all-in-one:latest
+    ports:
+      - "6831:6831/udp"
+      - "16686:16686"
+    networks:
+      - network
+
+volumes:
+  order_pgdata:
+  redis_data:
+
+networks:
+  network:

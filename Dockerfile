@@ -1,15 +1,13 @@
-FROM python:3.13-slim
+FROM python:3.12-slim
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
-    # pip
     PIP_NO_CACHE_DIR=off \
     PIP_DISABLE_PIP_VERSION_CHECK=on \
     PIP_DEFAULT_TIMEOUT=100 \
-    # poetry
     POETRY_HOME="/opt/poetry" \
     POETRY_CACHE_DIR=/tmp/poetry_cache \
-    POETRY_VENV_IN_PROJECT=1 \
+    POETRY_VIRTUALENVS_CREATE=false \
     POETRY_NO_INTERACTION=1 \
     APP_PATH='/opt/app'
 
@@ -22,7 +20,7 @@ RUN pip install poetry
 COPY pyproject.toml poetry.lock* ./
 
 # Install dependencies
-RUN poetry install --only=main && rm -rf $POETRY_CACHE_DIR
+RUN poetry install --no-root && rm -rf $POETRY_CACHE_DIR
 
 # Copy application code
 COPY . .

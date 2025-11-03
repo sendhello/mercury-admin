@@ -1,6 +1,49 @@
-.dockerignore
-Dockerfile
-docker-compose-dev.yml
-docker-compose.yml
+# VCS
+.git
 .gitignore
+.github
+
+# Python artifacts
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+.dist-info/
+.eggs/
+
+# Environments
+.venv/
+venv/
+.env
+.env.*
+!.env.example
+.env.local
+
+# Caches and tooling
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.pytype/
+.cache/
+
+# Build outputs
+build/
+dist/
+initdb
+
+# IDE/editor
+.idea/
+.vscode/
+
+# Docker/compose files (not needed in build context)
+Dockerfile
+docker-compose.yml
+docker-compose-dev.yml
+.dockerignore
+
+# Docs and misc
 README.md
+SECURITY.md
+LICENSE

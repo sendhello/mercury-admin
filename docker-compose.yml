@@ -2,18 +2,20 @@ version: '3.8'
 
 services:
 
-  order-service:
-    container_name: order-service
-    hostname: order-service
+  mercury-admin:
+    container_name: mercury-admin
+    hostname: mercury-admin
     build: .
     environment:
       DEBUG: ${DEBUG}
       PROJECT_NAME: ${PROJECT_NAME}
       POSTGRES_HOST: ${POSTGRES_HOST}
       POSTGRES_PORT: ${POSTGRES_PORT}
-      POSTGRES_DB: ${ORDER_POSTGRES_DB}
+      POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_APP_USER: ${POSTGRES_APP_USER}
       POSTGRES_APP_PASSWORD: ${POSTGRES_APP_PASSWORD}
+      POSTGRES_OWNER_USER: ${POSTGRES_OWNER_USER}
+      POSTGRES_OWNER_PASSWORD: ${POSTGRES_OWNER_PASSWORD}
       REDIS_HOST: ${REDIS_HOST}
       REDIS_PORT: ${REDIS_PORT}
       AUTHJWT_SECRET_KEY: ${AUTHJWT_SECRET_KEY}
@@ -22,28 +24,29 @@ services:
       JAEGER_AGENT_PORT: ${JAEGER_AGENT_PORT}
     networks:
       - network
-    expose:
-      - "8000"
+    ports:
+      - "8000:8000"
     depends_on:
       - redis
-      - order-postgres
+      - mercury-postgres
 
-  order-postgres:
-    container_name: order-postgres
-    hostname: order-postgres
+  mercury-postgres:
+    container_name: mercury-postgres
+    hostname: mercury-postgres
     image: postgres:15.2
     networks:
       - network
-    expose:
-      - "5432"
+    ports:
+      - "5433:5432"
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${ORDER_POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_OWNER_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_OWNER_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     volumes:
-      - order_pgdata:/var/lib/postgresql/data/
+      - ./initdb:/docker-entrypoint-initdb.d
+      - mercury_pgdata:/var/lib/postgresql/data/
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_MIGRATE_USER} -d ${MERCURY_POSTGRES_DB}" ]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -56,8 +59,8 @@ services:
       ALLOW_EMPTY_PASSWORD: ${ALLOW_EMPTY_PASSWORD}
     volumes:
       - redis_data:/data
-    expose:
-      - "6379"
+    ports:
+      - "6379:6379"
     networks:
       - network
 
@@ -72,7 +75,7 @@ services:
       - network
 
 volumes:
-  order_pgdata:
+  mercury_pgdata:
   redis_data:
 
 networks:
